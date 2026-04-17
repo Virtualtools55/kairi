@@ -20,7 +20,7 @@ export default function SignupPage() {
       const data = await res.json();
       if (res.ok) {
         alert("Account Created! Please Login.");
-        router.push('/login');
+        router.push('/auth/login');
       } else {
         alert(data.message);
       }
