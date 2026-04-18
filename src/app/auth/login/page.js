@@ -19,13 +19,16 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (res.ok) {
+        // Professional decision: Context ya Cookies ka use karein, 
+        // par aapka logic localStorage hai toh wahi rakha hai.
         localStorage.setItem('token', data.token);
         router.push('/'); 
       } else {
         alert(data.message);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Login Error:", err);
+      alert("Something went wrong while entering the orchard.");
     } finally {
       setLoading(false);
     }
@@ -34,7 +37,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-[#FFF9F0] flex flex-col md:flex-row font-sans">
       
-      {/* Left Side: High-Energy Branding (Vibrant Saffron) */}
+      {/* Left Side: High-Energy Branding */}
       <div className="hidden md:flex md:w-[45%] bg-[#FF5E00] items-center justify-center p-16 sticky top-0 h-screen shadow-[inset_-20px_0_40px_rgba(0,0,0,0.1)]">
         <div className="max-w-sm">
           <h1 className="text-8xl font-black text-white leading-[0.85] tracking-tighter mb-8 drop-shadow-2xl">
@@ -46,7 +49,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Side: Login Form (Parchment Background) */}
+      {/* Right Side: Login Form */}
       <div className="flex-1 flex items-center justify-center p-8 sm:p-16 lg:p-24 bg-[#FFF9F0]">
         <div className="w-full max-w-[480px]">
           
@@ -74,7 +77,14 @@ export default function LoginPage() {
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center px-1">
                 <label className="text-xs font-black text-[#2B1B12] uppercase tracking-[0.2em]">Secret Key</label>
-                <Link href="#" className="text-xs font-bold text-[#FF5E00] hover:underline transition-all">Forgot?</Link>
+                
+                {/* Forgot Password Link Integrated Here */}
+                <Link 
+                  href="/auth/forgot-password" 
+                  className="text-xs font-bold text-[#FF5E00] hover:underline transition-all decoration-2 underline-offset-4"
+                >
+                  Forgot?
+                </Link>
               </div>
               <input 
                 type="password" 
@@ -85,19 +95,28 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Action Button (Orchard Green) */}
+            {/* Action Button */}
             <button 
+              type="submit"
               disabled={loading}
-              className="w-full bg-[#2D6A4F] hover:bg-[#1B4332] text-white font-black py-5 rounded-2xl shadow-2xl shadow-[#2D6A4F]/30 transition-all active:scale-[0.96] text-xl mt-4 flex items-center justify-center gap-3 disabled:opacity-70"
+              className="w-full bg-[#2D6A4F] hover:bg-[#1B4332] text-white font-black py-5 rounded-2xl shadow-2xl shadow-[#2D6A4F]/30 transition-all active:scale-[0.96] text-xl mt-4 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              {loading ? 'Verifying...' : 'Enter the Orchard'}
+              {loading ? (
+                <>
+                  <span className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin"></span>
+                  Verifying...
+                </>
+              ) : 'Enter the Orchard'}
             </button>
           </form>
 
           {/* Footer Link */}
           <div className="mt-16 pt-10 border-t-2 border-[#F2E8CF] text-center">
             <p className="text-[#2B1B12]/70 text-lg font-medium">
-              New to Kairi.in? <Link href="/auth/signup" className="text-[#FF5E00] font-black hover:scale-105 inline-block transition-transform ml-2">Join the Family</Link>
+              New to Kairi.in? 
+              <Link href="/auth/signup" className="text-[#FF5E00] font-black hover:scale-105 inline-block transition-transform ml-2">
+                Join the Family
+              </Link>
             </p>
           </div>
         </div>

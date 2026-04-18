@@ -1,6 +1,12 @@
 import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
+
+email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
+
   name: { 
     type: String, 
     required: [true, "Name is required"] 
