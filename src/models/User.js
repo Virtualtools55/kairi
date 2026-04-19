@@ -1,12 +1,6 @@
 import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
-
-email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  resetPasswordToken: String,
-  resetPasswordExpire: Date,
-
   name: { 
     type: String, 
     required: [true, "Name is required"] 
@@ -26,11 +20,19 @@ email: { type: String, required: true, unique: true },
     enum: ["user", "admin"], 
     default: "user" 
   },
-  createdAt: { 
-    type: Date, 
-    default: Date.now 
-  }
+  // Reset Password Fields
+  resetPasswordToken: {
+    type: String,
+    required: false,
+  },
+  resetPasswordExpire: {
+    type: Date,
+    required: false,
+  },
+}, { 
+  timestamps: true // Isse 'createdAt' aur 'updatedAt' apne aap ban jayenge
 });
 
 // Model compile karne se pehle check karein ki wo pehle se register toh nahi hai
-export default mongoose.models.User || mongoose.model("User", UserSchema);
+const User = mongoose.models.User || mongoose.model("User", UserSchema);
+export default User;

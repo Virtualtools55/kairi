@@ -1,34 +1,37 @@
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
-import crypto from "crypto";
-import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import CryptoJS from "crypto-js";
 import { NextResponse } from "next/server";
 
-export async function POST(request) {
+export async function POST(req) {
   try {
     await dbConnect();
-    const { token, password } = await request.json();
+    const { token, password } = await req.json();
 
-    // Token match karna
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-
-    const user = await User.findOne({
-      resetPasswordToken: hashedToken,
-      resetPasswordExpire: { $gt: Date.now() },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "Invalid/Expired" }, { status: 400 });
+    if (!token || !password) {
+      return NextResponse.json({ message: "Data missing" }, { status: 400 });
     }
 
-    // Update & Clean up
-    user.password = await bcrypt.hash(password, 10);
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-    await user.save();
+    // 1. Token verify karein
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId || decoded.id;
 
-    return NextResponse.json({ message: "Success" });
-  } catch (err) {
-    return NextResponse.json({ error: "Error" }, { status: 500 });
+    // 2. Naya password encrypt karein (Consistency is key)
+    const hashedPassword = CryptoJS.AES.encrypt(password, process.env.CRYPTO_SECRET).toString();
+
+    // 3. Database mein update karein
+    const updatedUser = await User.findByIdAndUpdate(userId, { 
+      password: hashedPassword 
+    });
+
+    if (!updatedUser) {
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "Password reset successful!" }, { status: 200 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ message: "Invalid or expired link" }, { status: 400 });
   }
 }

@@ -22,9 +22,15 @@ export default function ForgotPassword() {
 
       const data = await res.json();
       if (res.ok) {
-        setMessage({ text: "Success! Check your email for the reset link.", type: "success" });
+        setMessage({
+          text: "Success! Check your email for the reset link.",
+          type: "success",
+        });
       } else {
-        setMessage({ text: data.message || "Something went wrong", type: "error" });
+        setMessage({
+          text: data.message || "Something went wrong",
+          type: "error",
+        });
       }
     } catch (err) {
       setMessage({ text: "Network error, please try again.", type: "error" });
@@ -41,16 +47,21 @@ export default function ForgotPassword() {
             <Mail className="text-orange-600" size={28} />
           </div>
           <h2 className="text-2xl font-bold text-gray-800">Forgot Password?</h2>
-          <p className="text-black-500 mt-2 text-sm ">Apni registered email dalein, hum aapko reset link bhej denge.</p>
+          <p className="text-black-080 mt-2 text-sm ">
+            Apni registered email dalein, hum aapko reset link bhej denge.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="relative">
-            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <Mail
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-black-500"
+              size={20}
+            />
+            // Ab (Corrected):
             <input
               type="email"
-              placeholder="Email Address"
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+              className="w-full pl-12 text-gray-900 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -67,15 +78,22 @@ export default function ForgotPassword() {
         </form>
 
         {message.text && (
-          <div className={`mt-6 p-4 rounded-xl text-center text-sm font-medium ${
-            message.type === "success" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
-          }`}>
+          <div
+            className={`mt-6 p-4 rounded-xl text-center text-sm font-medium ${
+              message.type === "success"
+                ? "bg-green-50 text-green-600"
+                : "bg-red-50 text-red-600"
+            }`}
+          >
             {message.text}
           </div>
         )}
 
         <div className="mt-8 text-center">
-          <Link href="/auth/login" className="text-gray-500 hover:text-orange-600 inline-flex items-center gap-2 text-sm transition-all">
+          <Link
+            href="/auth/login"
+            className="text-gray-500 hover:text-orange-600 inline-flex items-center gap-2 text-sm transition-all"
+          >
             <ArrowLeft size={16} /> Back to Login
           </Link>
         </div>
