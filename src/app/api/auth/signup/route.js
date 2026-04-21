@@ -1,56 +1,58 @@
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import CryptoJS from "crypto-js";
+import nodemailer from "nodemailer";
 import { NextResponse } from "next/server";
 
-export async function POST(request) {
+export async function POST(req) {
   try {
     await dbConnect();
-    const { name, email, password } = await request.json();
+    const { name, email, password, phone, address, pincode } = await req.json();
 
-    // 1. Validation: Check if user exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return NextResponse.json({ message: "Email already registered!" }, { status: 400 });
+    // 1. Gmail Only Validation
+    if (!email.endsWith("@gmail.com")) {
+      return NextResponse.json({ message: "Only @gmail.com addresses are allowed" }, { status: 400 });
     }
 
-    // 2. Security: Bcrypt se password hash karein
-    const hashedPassword = await bcrypt.hash(password, 12);
+    // 2. Check existing user
+    const existingUser = await User.findOne({ email });
+    if (existingUser && existingUser.isVerified) {
+      return NextResponse.json({ message: "Email already registered." }, { status: 400 });
+    }
 
-    // 3. Database: Naya user create karein
-    const newUser = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      role: "user" // Pehla user manually DB mein 'admin' banana hoga
-    });
+    // 3. Generate OTP
+    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
 
-    // 4. Token: JWT generate karein (Taki register hote hi login ho jaye)
-    const token = jwt.sign(
-      { id: newUser._id, role: newUser.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+    const hashedPassword = CryptoJS.AES.encrypt(password, process.env.CRYPTO_SECRET).toString();
+
+    // 4. Upsert User (Update if exists but not verified, else create)
+    await User.findOneAndUpdate(
+      { email },
+      { name, email, password: hashedPassword, phone, address, pincode, otp: generatedOtp, otpExpire, isVerified: false },
+     { upsert: true, returnDocument: 'after' }
     );
 
-    // 5. Response: Cookie set karein aur success message bhejein
-    const response = NextResponse.json({
-      message: "Kairi.in par aapka swagat hai!",
-      user: { name: newUser.name, email: newUser.email }
-    }, { status: 201 });
-
-    // Secure Cookie set karna
-    response.cookies.set("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24, // 1 din
-      path: "/",
+    // 5. Send Email
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
     });
 
-    return response;
+    await transporter.sendMail({
+      from: `"Kairi Support" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `${generatedOtp} is your Kairi Verification Code`,
+      html: `<div style="font-family:sans-serif; padding:20px; border:1px solid #FF5E00; border-radius:10px;">
+              <h2 style="color:#FF5E00;">Verify Your Account</h2>
+              <p>Your 6-digit verification code is:</p>
+              <h1 style="letter-spacing:5px; color:#2D6A4F;">${generatedOtp}</h1>
+              <p>Valid for 10 minutes only.</p>
+            </div>`,
+    });
 
+    return NextResponse.json({ message: "OTP sent to your Gmail." }, { status: 200 });
   } catch (error) {
-    console.error("Signup Error:", error);
-    return NextResponse.json({ message: "Registration failed!" }, { status: 500 });
+    return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }

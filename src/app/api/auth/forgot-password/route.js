@@ -1,67 +1,48 @@
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
-import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import nodemailer from "nodemailer";
-import { NextResponse } from "next/server"; // NextResponse use karna zaroori hai
+import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
     await dbConnect();
-
-    // App Router mein req.body nahi, await req.json() use hota hai
     const { email } = await req.json();
-
     const user = await User.findOne({ email });
-    
-    if (!user) {
-      return NextResponse.json(
-        { message: "If that account exists, an email has been sent." },
-        { status: 200 }
-      );
-    }
 
-    // Token generation
-    const resetToken = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "15m" }
-    );
+    if (!user) return NextResponse.json({ message: "User not found" }, { status: 404 });
 
-    // URL format aapke dynamic route ke hisab se (reset-password/[token])
-    const resetUrl = `${process.env.NEXT_PUBLIC_DOMAIN}/auth/reset-password/${resetToken}`;
+    // 1. Create Reset Token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetPasswordExpire = new Date(Date.now() + 15 * 60 * 1000); // 15 mins valid
 
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpire = resetPasswordExpire;
+    await user.save();
+
+    // 2. Create Reset Link
+    const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/reset-password/${resetToken}`;
+
+    // 3. Send Email
     const transporter = nodemailer.createTransport({
       service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD, // Make sure this is correct in .env
-      },
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
     });
 
     await transporter.sendMail({
-      from: '"Kairi Support" <support@kairi.in>',
-      to: user.email,
-      subject: "Password Reset Request",
-      html: `
-        <div style="font-family: sans-serif; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
-          <h2 style="color: #f97316;">Password Reset</h2>
-          <p>Aapne password reset ka request kiya hai. Niche diye gaye button par click karein:</p>
-          <a href="${resetUrl}" style="background: #f97316; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a>
-          <p style="margin-top: 15px; font-size: 12px;">Ye link 15 minutes mein expire ho jayega.</p>
-        </div>
-      `,
+      from: `"Kairi Security" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Password Reset Request - Kairi",
+      html: `<div style="font-family:sans-serif; text-align:center; padding:20px; border:2px solid #FF5E00; border-radius:15px;">
+              <h1 style="color:#FF5E00;">Kairi.in</h1>
+              <p>Aapne password reset ke liye request ki thi. Niche diye gaye button par click karein:</p>
+              <a href="${resetUrl}" style="background:#2D6A4F; color:white; padding:12px 25px; text-decoration:none; border-radius:10px; font-weight:bold; display:inline-block; margin:20px 0;">Reset Password</a>
+              <p style="color:#666;">Ye link 15 minute mein expire ho jayega.</p>
+             </div>`
     });
 
-    return NextResponse.json(
-      { message: "Email sent successfully." },
-      { status: 200 }
-    );
-
+    return NextResponse.json({ message: "Reset link sent to Gmail" }, { status: 200 });
   } catch (error) {
-    console.error("Forgot Password Error:", error);
-    return NextResponse.json(
-      { message: "Server error, please try again." },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Error sending email" }, { status: 500 });
   }
 }

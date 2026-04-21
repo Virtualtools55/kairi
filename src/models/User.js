@@ -1,38 +1,19 @@
 import mongoose from "mongoose";
 
-const UserSchema = new mongoose.Schema({
-  name: { 
-    type: String, 
-    required: [true, "Name is required"] 
+const UserSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true, lowercase: true },
+    password: { type: String, required: true },
+    phone: { type: String, required: true },
+    address: { type: String, required: true },
+    pincode: { type: String, required: true },
+    isVerified: { type: Boolean, default: false },
+    otp: { type: String },
+    otpExpire: { type: Date },
+    currentSessionId: { type: String, default: "" },
   },
-  email: { 
-    type: String, 
-    required: [true, "Email is required"], 
-    unique: true,
-    lowercase: true 
-  },
-  password: { 
-    type: String, 
-    required: [true, "Password is required"] 
-  },
-  role: { 
-    type: String, 
-    enum: ["user", "admin"], 
-    default: "user" 
-  },
-  // Reset Password Fields
-  resetPasswordToken: {
-    type: String,
-    required: false,
-  },
-  resetPasswordExpire: {
-    type: Date,
-    required: false,
-  },
-}, { 
-  timestamps: true // Isse 'createdAt' aur 'updatedAt' apne aap ban jayenge
-});
+  { timestamps: true },
+);
 
-// Model compile karne se pehle check karein ki wo pehle se register toh nahi hai
-const User = mongoose.models.User || mongoose.model("User", UserSchema);
-export default User;
+export default mongoose.models.User || mongoose.model("User", UserSchema);
