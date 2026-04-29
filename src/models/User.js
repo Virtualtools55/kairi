@@ -12,6 +12,17 @@ const UserSchema = new mongoose.Schema(
     otp: { type: String },
     otpExpire: { type: Date },
     currentSessionId: { type: String, default: "" },
+    
+    // --- Yeh fields add karna zaroori hai ---
+    resetPasswordToken: { 
+      type: String, 
+      default: undefined // Shuruat mein khali rahega
+    },
+    resetPasswordExpire: { 
+      type: Date, 
+      default: undefined 
+    },
+    // ----------------------------------------
   },
   { timestamps: true },
 );

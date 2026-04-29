@@ -62,7 +62,7 @@ export default function LoginPage() {
           </form>
 
           <p className="mt-12 text-center text-[#2B1B12]/70 text-lg font-bold">
-            New here? <Link href="/signup" className="text-[#FF5E00] font-black hover:underline ml-1">Join the community</Link>
+            New here? <Link href="/auth/signup" className="text-[#FF5E00] font-black hover:underline ml-1">Join the community</Link>
           </p>
         </div>
       </div>
