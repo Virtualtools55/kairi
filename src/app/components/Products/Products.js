@@ -1,14 +1,13 @@
 "use client"
 import { useState, useEffect } from 'react';
 
-export default function Products() {
+export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Database se products fetch karne ka function
   const fetchProducts = async () => {
     try {
-      const res = await fetch('/api/products');
+      const res = await fetch('/api/fetchProducts');
       const data = await res.json();
       setProducts(data);
     } catch (error) {
@@ -18,28 +17,20 @@ export default function Products() {
     }
   };
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  useEffect(() => { fetchProducts(); }, []);
 
-  if (loading) return <div style={{ textAlign: 'center', padding: '50px' }}>Loading Fresh Mangoes...</div>;
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#FCF9F2]">
+        <div className="w-12 h-12 border-2 border-[#FF5E00]/10 border-t-[#FF5E00] rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
-    <main style={{ backgroundColor: '#fff', minHeight: '100vh', padding: '40px 20px' }}>
-      {/* Header Section */}
-      <div style={{ textAlign: 'center', marginBottom: '50px' }}>
-        <h1 style={{ fontSize: '36px', color: '#1A2B48', fontWeight: 'bold' }}>Kairi.in</h1>
-        <p style={{ color: '#888', marginTop: '10px' }}>Premium Handpicked Mangoes Delivered to Your Doorstep</p>
-      </div>
-
-      {/* Products Grid */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
-        gap: '30px', 
-        maxWidth: '1200px', 
-        margin: '0 auto' 
-      }}>
+    <main className="bg-[#FCF9F2] min-h-screen py-12 px-4 md:px-12">
+      {/* Grid Container - Adjusted for better spacing */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 max-w-7xl mx-auto">
         {products.map((product) => (
           <ProductCard key={product._id} product={product} />
         ))}
@@ -48,103 +39,71 @@ export default function Products() {
   );
 }
 
-// --- Product Card Component (Reference Image Style) ---
 function ProductCard({ product }) {
   return (
-    <div style={{ 
-      backgroundColor: '#fff', 
-      borderRadius: '20px', 
-      padding: '24px', 
-      boxShadow: '0 10px 30px rgba(0,0,0,0.05)', 
-      border: '1px solid #f0f0f0',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      transition: 'transform 0.3s ease',
-      cursor: 'pointer',
-      position: 'relative'
-    }}>
+    <div className="group relative flex flex-col bg-white rounded-[50px] p-4 transition-all duration-500 hover:shadow-[0_40px_80px_-30px_rgba(255,94,0,0.15)]">
       
-      {/* Sold Out Badge */}
-      {product.isSoldOut && (
-        <span style={{
-          position: 'absolute',
-          top: '15px',
-          right: '15px',
-          backgroundColor: '#000',
-          color: '#fff',
-          fontSize: '10px',
-          padding: '4px 10px',
-          borderRadius: '50px',
-          fontWeight: 'bold',
-          zIndex: 1
-        }}>SOLD OUT</span>
-      )}
+      {/* 1. Image Container (The Hero of the Card) */}
+      <div className="relative aspect-square w-full overflow-hidden rounded-[40px] bg-[#F8F8F8] flex items-center justify-center">
+        {/* Organic Tag */}
+        <div className="absolute top-5 left-5 z-10 bg-white/80 backdrop-blur-md px-4 py-1.5 rounded-full border border-gray-100">
+           <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#2D6A4F]">Farm Fresh</span>
+        </div>
 
-      {/* Image Wrapper */}
-      <div style={{ width: '100%', height: '220px', marginBottom: '20px', overflow: 'hidden' }}>
+        {product.isSoldOut && (
+          <div className="absolute inset-0 z-20 bg-white/40 backdrop-blur-[1px] flex items-center justify-center">
+            <div className="bg-black text-white text-[10px] font-black px-6 py-2 rounded-full tracking-widest uppercase rotate-[-5deg] shadow-2xl">
+              Sold Out
+            </div>
+          </div>
+        )}
+
         <img 
           src={product.imageUrl} 
           alt={product.title} 
-          style={{ 
-            width: '100%', 
-            height: '100%', 
-            objectFit: 'contain',
-            filter: product.isSoldOut ? 'grayscale(100%)' : 'none',
-            opacity: product.isSoldOut ? 0.6 : 1
-          }} 
+          className={`w-[85%] h-[85%] object-contain transition-transform duration-700 group-hover:scale-110 ${
+            product.isSoldOut ? 'grayscale opacity-30' : 'drop-shadow-2xl'
+          }`} 
         />
       </div>
 
-      {/* Title */}
-      <h3 style={{ 
-        fontSize: '22px', 
-        color: '#1A2B48', 
-        marginBottom: '10px', 
-        textAlign: 'center',
-        fontWeight: '700'
-      }}>
-        {product.title}
-      </h3>
+      {/* 2. Content Section */}
+      <div className="pt-6 pb-4 px-4 text-center">
+        <h3 className="text-xl font-bold text-[#1A2B48] tracking-tight mb-2 group-hover:text-[#FF5E00] transition-colors">
+          {product.title}
+        </h3>
+        
+        {/* Pricing Logic */}
+        <div className="flex items-center justify-center gap-3">
+          {product.discountPrice > 0 ? (
+            <div className="flex flex-col">
+              <span className="text-[#2D6A4F] text-2xl font-black italic leading-none">₹{product.discountPrice}</span>
+              <span className="text-gray-300 line-through text-[10px] font-bold mt-1">MRP ₹{product.price}</span>
+            </div>
+          ) : (
+            <span className="text-[#2D6A4F] text-2xl font-black italic">₹{product.price}</span>
+          )}
+        </div>
 
-      {/* Price Section */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-        {product.discountPrice ? (
-          <>
-            <span style={{ color: '#999', textDecoration: 'line-through', fontSize: '18px' }}>
-              ₹{product.price}
-            </span>
-            <span style={{ color: '#219653', fontSize: '26px', fontWeight: 'bold' }}>
-              ₹{product.discountPrice}
-            </span>
-          </>
-        ) : (
-          <span style={{ color: '#219653', fontSize: '26px', fontWeight: 'bold' }}>
-            ₹{product.price}
+        {/* 3. Action Button (Luxury Interaction) */}
+        <button 
+          disabled={product.isSoldOut}
+          className={`mt-6 w-full py-4 rounded-[25px] font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-500 overflow-hidden relative group/btn ${
+            product.isSoldOut 
+            ? 'bg-gray-100 text-gray-300 cursor-not-allowed' 
+            : 'bg-black text-white hover:bg-[#FF5E00] shadow-xl hover:shadow-[#FF5E00]/30'
+          }`}
+        >
+          <span className="relative z-10">
+            {product.isSoldOut ? 'Not in Season' : 'Add to Basket'}
           </span>
-        )}
+        </button>
       </div>
 
-      {/* Action Button */}
-      <button 
-        disabled={product.isSoldOut}
-        style={{
-          width: '100%',
-          padding: '14px',
-          borderRadius: '12px',
-          border: 'none',
-          backgroundColor: product.isSoldOut ? '#e0e0e0' : '#FF7A1A',
-          color: '#fff',
-          fontSize: '18px',
-          fontWeight: 'bold',
-          cursor: product.isSoldOut ? 'not-allowed' : 'pointer',
-          transition: 'background 0.3s ease'
-        }}
-        onMouseOver={(e) => !product.isSoldOut && (e.target.style.backgroundColor = '#e66d16')}
-        onMouseOut={(e) => !product.isSoldOut && (e.target.style.backgroundColor = '#FF7A1A')}
-      >
-        {product.isSoldOut ? 'Out of Stock' : 'Get Fresh Mangoes'}
-      </button>
+      {/* Subtle Bottom Accent */}
+      <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-1 rounded-t-full transition-all duration-500 ${
+        product.isSoldOut ? 'bg-gray-100' : 'bg-[#FF5E00] opacity-0 group-hover:opacity-100'
+      }`}></div>
     </div>
   );
 }

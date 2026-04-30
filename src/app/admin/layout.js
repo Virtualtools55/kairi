@@ -1,6 +1,6 @@
 "use client";
 
-import AdminSlidbar from "./Components/AdminSlidbar/AdminSlidbar";
+import AdminMenuBar from "./Components/adminMenuBar/adminMenuBar";
 import { usePathname } from "next/navigation";
 
 export default function AdminLayout({ children }) {
@@ -14,7 +14,7 @@ export default function AdminLayout({ children }) {
     <div className={isAuthPage ? "min-h-screen bg-gray-50" : "flex min-h-screen bg-[#FFFBF2]"}>
       
       {/* अगर लॉगिन या साइनअप पेज नहीं है, तभी साइडबार दिखाओ */}
-      {!isAuthPage && <AdminSlidbar />}
+      {!isAuthPage && <AdminMenuBar />}
 
       <main className={`flex-1 ${!isAuthPage ? "overflow-y-auto max-h-screen" : "flex items-center justify-center"}`}>
         {children}

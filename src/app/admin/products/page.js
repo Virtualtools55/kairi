@@ -14,7 +14,7 @@ export default function AdminProducts() {
   // 1. Fetch Inventory
   const loadProducts = async () => {
     try {
-      const res = await fetch('/api/admin/Products');
+      const res = await fetch('/api/fetchProducts');
       const data = await res.json();
       if (Array.isArray(data)) setProducts(data);
     } catch (err) {

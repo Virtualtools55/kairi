@@ -33,9 +33,9 @@ export default function AdminSidebar() {
             </Link>
           </li>
           <li>
-            <Link href="/admin/dashboard" className={getLinkClass('/admin/dashboard')}>
+            <Link href="/admin/admin-slider-ui" className={getLinkClass('/admin/admin-slider-ui')}>
               <span className="text-2xl">📊</span>
-              <span className="uppercase tracking-wider text-sm">Dashboard</span>
+              <span className="uppercase tracking-wider text-sm">UploadSlider</span>
             </Link>
           </li>
           {/* अन्य लिंक्स भी इसी तरह डालें */}
