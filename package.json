@@ -2,13 +2,26 @@
   "name": "kairi",
   "version": "0.1.0",
   "private": true,
+  "description": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).",
+  "homepage": "https://github.com/Virtualtools55/kairi#readme",
+  "bugs": {
+    "url": "https://github.com/Virtualtools55/kairi/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Virtualtools55/kairi.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint"
   },
   "dependencies": {
+    "@tailwindcss/postcss": "^4.2.4",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "crypto-js": "^4.2.0",
@@ -17,17 +30,20 @@
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.8.0",
     "mongodb": "^7.1.1",
-    "mongoose": "^9.4.1",
-    "next": "16.2.3",
+    "mongoose": "^9.6.1",
+    "next": "15.1.0",
     "nodemailer": "^8.0.5",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "swiper": "^12.1.4"
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "swiper": "^11.1.15"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20.17.10",
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.1",
     "eslint": "^9",
-    "eslint-config-next": "16.2.3",
-    "tailwindcss": "^4"
+    "eslint-config-next": "15.1.0",
+    "postcss": "^8.5.13",
+    "tailwindcss": "^4.2.4"
   }
 }

@@ -43,6 +43,7 @@ export async function POST(req) {
 
     return NextResponse.json({ message: "Reset link sent to Gmail" }, { status: 200 });
   } catch (error) {
+      console.log("EMAIL ERROR 👉", error)
     return NextResponse.json({ message: "Error sending email" }, { status: 500 });
   }
 }

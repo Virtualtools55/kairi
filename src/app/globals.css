@@ -1,7 +1,12 @@
 @import "tailwindcss";
 
+/* Aapki baki custom CSS yahan niche ho sakti hai */
+
+
 
 :root {
+    --foreground-rgb: 0, 0, 0;
+  /* ... */
   --background: #ffffff;
   /* --foreground: #171717; */
   margin: 0;
