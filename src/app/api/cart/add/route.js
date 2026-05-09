@@ -1,30 +1,39 @@
-import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import Cart from '@/models/Cart';
+import dbConnect from "@/lib/mongodb";
+import Cart from "@/models/Cart";
+import { cookies } from "next/headers"; // Next.js 15+ ke liye await zaroori hai
+import { NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
 
 export async function POST(req) {
   try {
     await dbConnect();
-    const { userId, productId } = await req.json();
+    
+    // Yahan await lagaiye 
+    const cookieStore = await cookies(); 
+    const token = cookieStore.get("token")?.value; 
 
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    let cart = await Cart.findOne({ userId });
-
-    if (cart) {
-      const itemIndex = cart.items.findIndex(p => p.productId.toString() === productId);
-      if (itemIndex > -1) {
-        cart.items[itemIndex].quantity += 1;
-      } else {
-        cart.items.push({ productId, quantity: 1 });
-      }
-      await cart.save();
-    } else {
-      cart = await Cart.create({ userId, items: [{ productId, quantity: 1 }] });
+    if (!token) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    return NextResponse.json(cart, { status: 200 });
+    // Token verify karke userId nikalna
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.id;
+
+    const { productId } = await req.json();
+
+    const existingItem = await Cart.findOne({ userId, productId });
+
+    if (existingItem) {
+      existingItem.quantity += 1;
+      await existingItem.save();
+    } else {
+      await Cart.create({ userId, productId, quantity: 1 });
+    }
+
+    return NextResponse.json({ message: "Added successfully" }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Auth Error:", error);
+    return NextResponse.json({ message: "Invalid Token or Auth Error" }, { status: 500 });
   }
 }

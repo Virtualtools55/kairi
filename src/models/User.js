@@ -1,9 +1,11 @@
 import mongoose from "mongoose";
+// Product model ko import karna zaroori hai populate ke liye
+import Product from "./Products"; 
 
 const UserSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true, lowercase: true },
+    name: { type: String, required: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true },
     phone: { type: String, required: true },
     address: { type: String, required: true },
@@ -13,18 +15,37 @@ const UserSchema = new mongoose.Schema(
     otpExpire: { type: Date },
     currentSessionId: { type: String, default: "" },
     
-    // --- Yeh fields add karna zaroori hai ---
+    // --- Cart Field (Optimized) ---
+    cart: [
+      {
+        productId: { 
+          type: mongoose.Schema.Types.ObjectId, 
+          ref: "Product", // Make sure aapke Product model ka export name "Product" hi ho
+          required: true 
+        },
+        quantity: { 
+          type: Number, 
+          required: true, 
+          default: 1,
+          min: [1, "Quantity cannot be less than 1"] 
+        },
+      }
+    ],
+
     resetPasswordToken: { 
       type: String, 
-      default: undefined // Shuruat mein khali rahega
+      default: undefined 
     },
     resetPasswordExpire: { 
       type: Date, 
       default: undefined 
     },
-    // ----------------------------------------
   },
-  { timestamps: true },
+  { 
+    timestamps: true,
+    // Ye line StrictPopulateError ko bypass karne mein help karti hai
+    strictPopulate: false 
+  },
 );
 
 export default mongoose.models.User || mongoose.model("User", UserSchema);

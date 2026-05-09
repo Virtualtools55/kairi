@@ -1,143 +1,98 @@
-"use client"
+"use client";
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
-export default function ProductsPage() {
+export default function ProductList() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Maan lo login ke baad tumne userId localStorage mein save ki hai
-  const [userId, setUserId] = useState(null);
+  const [addingId, setAddingId] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
-    // Client side par userId nikalna
-    const savedUserId = localStorage.getItem("userId") || "user_guest_123"; 
-    setUserId(savedUserId);
-    
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch('/api/fetchProducts');
-        const data = await res.json();
-        setProducts(data);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      } finally {
+    fetch('/api/fetchProducts')
+      .then((res) => res.json())
+      .then((data) => {
+        setProducts(data.products || data);
         setLoading(false);
-      }
-    };
-    fetchProducts();
+      });
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#FCF9F2]">
-        <div className="w-12 h-12 border-2 border-[#FF5E00]/10 border-t-[#FF5E00] rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  return (
-    <main className="bg-[#FCF9F2] min-h-screen py-12 px-4 md:px-12">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 max-w-7xl mx-auto">
-        {products.map((product) => (
-          <ProductCard key={product._id} product={product} userId={userId} />
-        ))}
-      </div>
-    </main>
-  );
-}
-
-function ProductCard({ product, userId }) {
-  const [isAdding, setIsAdding] = useState(false);
-
-  const handleAddToCart = async () => {
-    if (!userId) {
-      alert("Please login first!");
-      return;
-    }
-
-    setIsAdding(true);
+  const handleAddToCart = async (product) => {
+    setAddingId(product._id);
     try {
-      const response = await fetch('/api/cart/add', {
+      const res = await fetch('/api/cart/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          userId: userId, // Asali ID jo parent se aayi
-          productId: product._id 
-        }),
+        body: JSON.stringify({ productId: product._id }),
       });
 
-      if (response.ok) {
-        alert(`${product.title} cart mein add ho gaya! 🥭`);
-      } else {
-        const data = await response.json();
-        alert("Error: " + data.error);
+      if (res.status === 401) {
+        router.push('/login');
+        return;
       }
-    } catch (error) {
-      console.error("Cart Error:", error);
-      alert("Network problem!");
+
+      if (res.ok) alert("Added to cart! 🥭");
+    } catch (err) {
+      console.error(err);
     } finally {
-      setIsAdding(false);
+      setAddingId(null);
     }
   };
 
+  if (loading) return <div className="text-center py-20 font-bold text-[#FF5E00] animate-pulse">Fetching Fresh Harvest...</div>;
+
   return (
-    <div className="group relative flex flex-col bg-white rounded-[32px] p-3 md:p-5 transition-all duration-500 hover:shadow-[0_20px_50px_-12px_rgba(255,94,0,0.15)] border border-gray-50 w-full max-w-[400px] mx-auto min-h-[420px] md:min-h-[450px]">
-      
-      {/* Image Section */}
-      <div className="relative w-full h-[200px] md:h-[240px] overflow-hidden rounded-[24px] bg-[#F9F9F9]">
-        <div className="absolute top-3 left-3 z-30 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full shadow-sm">
-           <span className="text-[7px] md:text-[9px] font-bold uppercase tracking-widest text-[#2D6A4F]">Farm Fresh</span>
-        </div>
-        {product.isSoldOut && (
-          <div className="absolute inset-0 z-40 bg-white/60 backdrop-blur-[2px] flex items-center justify-center">
-            <span className="bg-black text-white text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest">Sold Out</span>
+    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4">
+      {products.map((product) => (
+        <div key={product._id} className="bg-white p-5 rounded-[35px] shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-500 group">
+          {/* Image Container */}
+          <div className="relative h-60 rounded-[25px] overflow-hidden bg-[#F9F8F3]">
+            <Image 
+              src={product.imageUrl} 
+              alt={product.title} 
+              fill 
+              className="object-cover transition-transform duration-700 group-hover:scale-110" 
+            />
           </div>
-        )}
-        <Image 
-          src={product.imageUrl} 
-          alt={product.title} 
-          fill 
-          sizes="(max-width: 768px) 100vw, 33vw"
-          className={`object-cover transition-transform duration-700 group-hover:scale-110 ${product.isSoldOut ? 'grayscale opacity-40' : ''}`} 
-        />
-      </div>
 
-      {/* Content Section */}
-      <div className="pt-4 flex flex-col flex-grow text-left">
-        <h3 className="text-base md:text-xl font-extrabold text-[#1A2B48] leading-tight mb-2 line-clamp-1">{product.title}</h3>
-        <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4">
-          <span className="text-[#2D6A4F] text-xl md:text-2xl font-black">₹{product.discountPrice > 0 ? product.discountPrice : product.price}</span>
-          {product.discountPrice > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-gray-400 line-through text-xs md:text-sm font-medium">₹{product.price}</span>
-              <span className="bg-orange-100 text-orange-600 text-[10px] md:text-xs font-bold px-2 py-0.5 rounded-md">SAVE ₹{product.price - product.discountPrice}</span>
+          {/* Details */}
+          <div className="mt-5 space-y-2">
+            <h3 className="font-extrabold text-xl text-[#1A2B48] truncate">{product.title}</h3>
+            
+            <div className="flex gap-3 items-center">
+              <span className="text-2xl font-black text-[#2D6A4F]">₹{product.discountPrice || product.price}</span>
+              {product.discountPrice > 0 && (
+                <span className="text-sm text-red-500 line-through font-bold opacity-70">₹{product.price}</span>
+              )}
             </div>
-          )}
-        </div>
 
-        {/* Action Buttons */}
-        <div className="mt-auto flex w-full gap-2 md:gap-3">
-          <button disabled={product.isSoldOut} className="flex-[4] py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all duration-300 bg-black text-white hover:bg-[#FF5E00]">
-            {product.isSoldOut ? 'Sold Out' : 'Get Fresh Mangoes'}
-          </button>
+            {/* Action Buttons */}
+            <div className="mt-6 flex flex-col gap-3">
+              {/* Button 1: Get Fresh Mangoes (Buy Now / Details) */}
+              <button 
+               onClick={() => router.push(`/products/${product._id}`)}
+                className="w-full py-4 bg-black text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] hover:bg-[#1A2B48] transition-all shadow-md shadow-black/10"
+              >
+                Get Fresh Mangoes
+              </button>
 
-          {/* Add to Cart Button */}
-          <button 
-            onClick={handleAddToCart}
-            disabled={product.isSoldOut || isAdding}
-            className="flex-1 flex items-center justify-center rounded-xl md:rounded-2xl bg-[#FFF5F0] text-[#FF5E00] border border-[#FF5E00]/10 hover:bg-[#FF5E00] hover:text-white"
-          >
-            {isAdding ? (
-              <div className="w-4 h-4 border-2 border-[#FF5E00] border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
-            )}
-          </button>
+              {/* Button 2: Add to Cart */}
+              <button 
+                onClick={() => handleAddToCart(product)}
+                disabled={addingId === product._id}
+                className="w-full py-4 bg-[#FFF5F0] text-[#FF5E00] rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] border border-[#FF5E00]/10 hover:bg-[#FF5E00] hover:text-white transition-all flex justify-center items-center"
+              >
+                {addingId === product._id ? (
+                  <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  "Add to Cart"
+                )}
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      ))}
     </div>
   );
 }
