@@ -39,7 +39,7 @@ const Navbar = () => {
           
           <div className="hidden md:flex gap-8 items-center">
             <Link href="/" className="text-gray-600 hover:text-orange-500 font-medium transition-colors">Home</Link>
-            <Link href="/products" className="text-gray-600 hover:text-orange-500 font-medium transition-colors">Products</Link>
+            <Link href="/orders" className="text-gray-600 hover:text-orange-500 font-medium transition-colors">Orders</Link>
             <Link href="/cart" className="text-gray-600 hover:text-orange-500 font-medium transition-colors">Cart</Link>
             
             {isLoggedIn ? (
