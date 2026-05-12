@@ -14,21 +14,20 @@ export async function POST(req) {
     if (!user)
       return NextResponse.json(
         { message: "Account not found" },
-        { status: 404 },
+        { status: 404 }
       );
 
     // 1. Check if verified
     if (!user.isVerified)
       return NextResponse.json(
         { message: "Please verify your email first" },
-        { status: 403 },
+        { status: 403 }
       );
 
     // 2. Password Check
-
     const bytes = CryptoJS.AES.decrypt(
       user.password,
-      process.env.CRYPTO_SECRET,
+      process.env.CRYPTO_SECRET
     );
 
     const originalPassword = bytes.toString(CryptoJS.enc.Utf8);
@@ -36,31 +35,38 @@ export async function POST(req) {
     if (originalPassword !== password)
       return NextResponse.json(
         { message: "Invalid Credentials" },
-        { status: 401 },
+        { status: 401 }
       );
 
     // 3. SINGLE DEVICE LOGIN LOGIC
-    // Ek naya random session ID banayein
     const newSessionId = crypto.randomBytes(16).toString("hex");
-    // Database mein update karein (Purana session invalidate ho jayega)
     await User.findByIdAndUpdate(user._id, { currentSessionId: newSessionId });
 
     // 4. Generate JWT with SessionId
     const token = jwt.sign(
       { id: user._id, email: user.email, sessionId: newSessionId },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" },
+      { expiresIn: "1d" }
     );
 
     const response = NextResponse.json(
       { message: "Login successful" },
-      { status: 200 },
+      { status: 200 }
     );
-    // Cookie mein save karein
-    response.cookies.set("token", token, { httpOnly: true, secure: true });
+
+    // 5. FIXED COOKIE SETTING
+    response.cookies.set("token", token, { 
+      httpOnly: true, 
+      // Localhost pe false rahega, production (Vercel) pe apne aap true ho jayega
+      secure: process.env.NODE_ENV === "production", 
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 // 1 Day in seconds
+    });
 
     return response;
   } catch (error) {
+    console.error("Login error:", error);
     return NextResponse.json({ message: "Login failed" }, { status: 500 });
   }
 }
