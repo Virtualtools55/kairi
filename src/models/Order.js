@@ -16,7 +16,7 @@ const OrderSchema = new mongoose.Schema({
   status: { type: String, default: "Processing" }, 
   address: { type: String }, 
 
-  // --- OTP Verification ke liye ye 2 fields add karein ---
+  // --- OTP Verification fields ---
   deliveryOtp: { 
     type: String, 
     default: null 
@@ -25,9 +25,12 @@ const OrderSchema = new mongoose.Schema({
     type: Date, 
     default: null 
   },
-  // ------------------------------------------------------
+  // -------------------------------
 
   createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.models.Order || mongoose.model("Order", OrderSchema);
+// Next.js hot reloading ke cache issue ko solve karne ke liye pehle check aur variable assignment karein
+const Order = mongoose.models.Order || mongoose.model("Order", OrderSchema);
+
+export default Order;

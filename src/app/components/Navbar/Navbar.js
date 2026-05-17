@@ -32,8 +32,8 @@ const Navbar = () => {
   return (
     <>
       <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-gray-100 z-50 px-6 py-4 shadow-sm">
-        <div className="max-w-7xl mx-auto flex justify-between items-center relative">
-          <div className="text-2xl font-bold text-orange-600 tracking-tight w-full text-center md:text-left md:w-auto">
+        <div className="max-w-7xl   mx-auto flex justify-between items-center relative">
+          <div className="text-2xl  font-bold text-orange-600 tracking-tight w-full text-center md:text-left md:w-auto">
             Kairi.in
           </div>
           
@@ -64,9 +64,9 @@ const Navbar = () => {
             <span className="text-[10px] font-medium uppercase">Home</span>
           </Link>
 
-          <Link href="/products" className="flex flex-col items-center gap-1 text-gray-500">
+          <Link href="/orders" className="flex flex-col items-center gap-1 text-gray-500">
             <ShoppingBag size={22} />
-            <span className="text-[10px] font-medium uppercase">Shop</span>
+            <span className="text-[10px] font-medium uppercase">Orders</span>
           </Link>
 
           <Link href="/cart" className="flex flex-col items-center gap-1 text-gray-500">
@@ -90,7 +90,7 @@ const Navbar = () => {
         </div>
       </nav>
 
-      <div className="h-20"></div> 
+     
     </>
   );
 };

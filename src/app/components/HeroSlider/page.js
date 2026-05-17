@@ -3,60 +3,71 @@ import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination, EffectFade } from 'swiper/modules';
 
-// Swiper CSS (यह इम्पोर्ट होना बहुत जरूरी है)
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
 
 export default function HeroSlider({ slides }) {
-  // अगर डेटा लोड हो रहा है या खाली है
   
   if (!slides || slides.length === 0) {
     return (
-      <div className="w-full h-[40vh] md:h-screen bg-gray-100 animate-pulse flex items-center justify-center">
-        <p className="text-gray-400">Loading Kairi Sliders...</p>
+      <div className="w-full h-[45vh] md:h-screen bg-[#FCFAF5] flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-[#2D6A4F]/20 border-t-[#2D6A4F] rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-[45vh] md:h-screen relative overflow-hidden bg-gray-900">
+    <div className="w-full h-[50vh]  md:h-screen relative overflow-hidden bg-white block leading-[0]">
       <Swiper
         modules={[Autoplay, Pagination, EffectFade]}
         effect="fade"
-        autoplay={{ delay: 5000, disableOnInteraction: false }}
+        fadeEffect={{ crossFade: true }}
+        speed={1000} // 1s Crossfade: Fast yet very smooth
+        autoplay={{ delay: 6000, disableOnInteraction: false }}
         pagination={{ clickable: true }}
         loop={slides.length > 1}
         className="h-full w-full"
       >
         {slides.map((slide) => (
           <SwiperSlide key={slide._id}>
-            <div className="relative w-full h-full group">
-              {/* Luxury Gradient Overlay - इसे z-10 पर रखें */}
-              <div className="absolute inset-0 bg-black/40 z-10" />
+            <div className="relative w-full h-full overflow-hidden">
+              <div className="absolute inset-0 bg-black/30 z-10" />
               
-              {/* Next.js Image Component */}
               <Image 
                 src={slide.imageUrl} 
                 alt={slide.title || "Kairi Mangoes"}
                 fill 
                 priority 
                 sizes="100vw"
-                className="object-cover transform transition-transform duration-[10s] scale-110 group-hover:scale-100"
+                className="object-cover"
               />
 
-              {/* Content Overlay - इसे z-20 पर रखें */}
-              <div className="absolute inset-0 z-20 flex flex-col justify-center px-8 md:px-24">
-                <div className="max-w-4xl">
-                  <span className="text-[#FF5E00] font-bold tracking-[0.3em] uppercase text-xs md:text-sm mb-4 block">
-                    {slide.subtitle}
-                  </span>
-                  <h2 className="text-white text-4xl md:text-8xl font-black leading-none mb-8">
-                    {slide.title}
-                  </h2>
-                  <button className="bg-white text-black font-bold py-3 px-10 rounded-full hover:bg-[#FF5E00] hover:text-white transition-colors duration-300">
-                    Order Now
-                  </button>
+              <div className="absolute inset-0 z-20 flex flex-col justify-center px-8 md:px-32">
+                <div className="max-w-3xl">
+                  {/* Animation: 1.2s duration for that 'Natural' feel */}
+                  <div className="animate-[smoothReveal_1.2s_ease-in-out_forwards]">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-5 h-[1px] bg-[#FF5E00]"></div>
+                      <span className="text-white/80 font-bold tracking-[0.4em] uppercase text-[8px] md:text-[10px]">
+                        {slide.subtitle || "Premium Selection"}
+                      </span>
+                    </div>
+
+                    <h2 className="text-white text-4xl md:text-7xl font-black leading-[1.1] tracking-tight mb-10">
+                      {slide.title}<span className="text-[#FF5E00]">.</span>
+                    </h2>
+
+                    <div className="flex flex-wrap gap-5">
+                      <button className="bg-[#FF5E00] text-white font-bold py-4 px-12 rounded-xl hover:bg-[#2D6A4F] transition-all duration-500 text-[10px] uppercase tracking-widest cursor-pointer shadow-lg shadow-black/5 active:scale-95">
+                        Discover
+                      </button>
+                      
+                      <button className="bg-white/5 backdrop-blur-sm text-white border border-white/20 font-bold py-4 px-12 rounded-xl hover:bg-white hover:text-black transition-all duration-500 text-[10px] uppercase tracking-widest cursor-pointer active:scale-95">
+                        Our Story
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -64,11 +75,33 @@ export default function HeroSlider({ slides }) {
         ))}
       </Swiper>
 
-      {/* Pagination Style */}
       <style jsx global>{`
-        .swiper-pagination-bullet { background: white !important; opacity: 0.5; }
-        .swiper-pagination-bullet-active { background: #FF5E00 !important; opacity: 1; width: 30px; border-radius: 4px; }
-        .swiper-pagination { bottom: 20px !important; }
+        .swiper-pagination-bullet { 
+          background: white !important; 
+          opacity: 0.2; 
+          height: 2px; 
+          width: 25px;
+          border-radius: 0px;
+          transition: all 0.5s ease;
+        }
+        .swiper-pagination-bullet-active { 
+          background: #FF5E00 !important; 
+          opacity: 1; 
+          width: 50px; 
+        }
+        .swiper-pagination { 
+          bottom: 40px !important; 
+          text-align: left !important;
+          padding-left: 32px;
+        }
+        @media (min-width: 768px) {
+          .swiper-pagination { padding-left: 128px; }
+        }
+
+        @keyframes smoothReveal {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
       `}</style>
     </div>
   );
