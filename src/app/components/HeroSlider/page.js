@@ -1,5 +1,5 @@
-"use client"
-export const dynamic = "force-dynamic";
+"use client";
+
 import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination, EffectFade } from 'swiper/modules';
@@ -19,12 +19,12 @@ export default function HeroSlider({ slides }) {
   }
 
   return (
-    <div className="w-full h-[50vh]  md:h-screen relative overflow-hidden bg-white block leading-[0]">
+    <div className="w-full h-[50vh] md:h-screen relative overflow-hidden bg-white block leading-[0]">
       <Swiper
         modules={[Autoplay, Pagination, EffectFade]}
         effect="fade"
         fadeEffect={{ crossFade: true }}
-        speed={1000} // 1s Crossfade: Fast yet very smooth
+        speed={1000} // 1s Smooth Crossfade
         autoplay={{ delay: 6000, disableOnInteraction: false }}
         pagination={{ clickable: true }}
         loop={slides.length > 1}
@@ -33,6 +33,7 @@ export default function HeroSlider({ slides }) {
         {slides.map((slide) => (
           <SwiperSlide key={slide._id}>
             <div className="relative w-full h-full overflow-hidden">
+              {/* Overlay tint */}
               <div className="absolute inset-0 bg-black/30 z-10" />
               
               <Image 
@@ -46,8 +47,9 @@ export default function HeroSlider({ slides }) {
 
               <div className="absolute inset-0 z-20 flex flex-col justify-center px-8 md:px-32">
                 <div className="max-w-3xl">
-                  {/* Animation: 1.2s duration for that 'Natural' feel */}
+                  {/* Animation Reveal Wrapper */}
                   <div className="animate-[smoothReveal_1.2s_ease-in-out_forwards]">
+                    
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-5 h-[1px] bg-[#FF5E00]"></div>
                       <span className="text-white/80 font-bold tracking-[0.4em] uppercase text-[8px] md:text-[10px]">
@@ -68,6 +70,7 @@ export default function HeroSlider({ slides }) {
                         Our Story
                       </button>
                     </div>
+
                   </div>
                 </div>
               </div>
@@ -76,7 +79,8 @@ export default function HeroSlider({ slides }) {
         ))}
       </Swiper>
 
-      <style jsx global>{`
+      {/* Global CSS Injection safely handling transitions across all App Router loads */}
+      <style dangerouslySetInnerHTML={{ __html: `
         .swiper-pagination-bullet { 
           background: white !important; 
           opacity: 0.2; 
@@ -103,7 +107,7 @@ export default function HeroSlider({ slides }) {
           from { opacity: 0; transform: translateY(30px); }
           to { opacity: 1; transform: translateY(0); }
         }
-      `}</style>
+      `}} />
     </div>
   );
 }

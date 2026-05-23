@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+
 import HeroSlider from "../HeroSlider/page";
 
 async function getSlides() {
