@@ -4,7 +4,7 @@ import HeroSlider from "../HeroSlider/page";
 async function getSlides() {
   try {
     // 1. Base URL तय करें (Server-side fetch के लिए absolute URL जरूरी है)
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   
     
     // 2. अपनी API को कॉल करें
