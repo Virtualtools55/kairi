@@ -6,15 +6,41 @@ import { useRouter } from "next/navigation";
 
 export default function ProductListClient({ products = [] }) {
   const [addingId, setAddingId] = useState(null);
+  const [checkingId, setCheckingId] = useState(null); // Get Fresh Mangoes ke button loading ke liye
   const router = useRouter();
 
-  const handleAddToCart = async (products) => {
-    setAddingId(products._id);
+  // Handle "Get Fresh Mangoes" Verification
+  const handleGetFreshMangoes = async (productId) => {
+    setCheckingId(productId);
+    try {
+      // Jo API humne upar banayi usko hit karenge
+      const res = await fetch("/api/auth/check", { method: "GET" });
+
+      if (res.status === 401) {
+        // Unauthenticated users direct login page par send honge
+        router.push("/auth/login");
+        return;
+      }
+
+      if (res.ok) {
+        // Authenticated hai to normal push execute hoga
+        router.push(`/products/${productId}`);
+      }
+    } catch (err) {
+      console.error("Auth verification failed:", err);
+      router.push("/auth/login"); // Fallback safety
+    } finally {
+      setCheckingId(null);
+    }
+  };
+
+  const handleAddToCart = async (product) => {
+    setAddingId(product._id);
     try {
       const res = await fetch("/api/cart/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: products._id }),
+        body: JSON.stringify({ productId: product._id }),
       });
 
       if (res.status === 401) {
@@ -42,6 +68,7 @@ export default function ProductListClient({ products = [] }) {
       </div>
     );
   }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 px-6 py-12">
       {products.map((product) => (
@@ -93,12 +120,17 @@ export default function ProductListClient({ products = [] }) {
 
             {/* Action Buttons */}
             <div className="mt-auto space-y-3">
-              {/* Primary Button: Deep Forest Green */}
+              {/* Primary Button: Deep Forest Green with validation loading */}
               <button
-                onClick={() => router.push(`/products/${product._id}`)}
-                className="w-full py-4 bg-[#2D6A4F] text-white rounded-[22px] font-bold text-[10px] uppercase tracking-[0.15em] hover:bg-[#1B4332] transition-all cursor-pointer shadow-lg shadow-[#2D6A4F]/10 active:scale-[0.97]"
+                onClick={() => handleGetFreshMangoes(product._id)}
+                disabled={checkingId === product._id}
+                className="w-full py-4 bg-[#2D6A4F] text-white rounded-[22px] font-bold text-[10px] uppercase tracking-[0.15em] hover:bg-[#1B4332] transition-all cursor-pointer shadow-lg shadow-[#2D6A4F]/10 active:scale-[0.97] flex justify-center items-center disabled:opacity-75"
               >
-                Get Fresh Mangoes
+                {checkingId === product._id ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  "Get Fresh Mangoes"
+                )}
               </button>
 
               {/* Secondary Button: Ripened Orange */}

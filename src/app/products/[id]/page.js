@@ -9,17 +9,35 @@ export default function SingleProductPage() {
   const router = useRouter();
   const [product, setProduct] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (id) {
       fetch(`/api/products/get-single?id=${id}`)
-        .then(res => res.json())
-        .then(data => setProduct(data))
-        .catch(err => console.error(err));
+        .then((res) => {
+          if (!res.ok) throw new Error("Product fetch failed");
+          return res.json();
+        })
+        .then((data) => {
+          // Agar backend wrap karke data bhejta hai { success: true, data: {...} }
+          // Toh data.data set hoga, warna direct pure object inject hoga
+          const cleanProduct = data.data ? data.data : data;
+          
+          if (cleanProduct && cleanProduct._id) {
+            setProduct(cleanProduct);
+          } else {
+            setError(true);
+          }
+        })
+        .catch((err) => {
+          console.error("Fetch client error:", err);
+          setError(true);
+        });
     }
   }, [id]);
 
   const handleBuyNow = async () => {
+    if (!product) return;
     setIsProcessing(true);
     try {
       const res = await fetch("/api/razorpay/order", {
@@ -39,7 +57,6 @@ export default function SingleProductPage() {
         description: `Fresh Harvest: ${product.title}`,
         order_id: data.orderId,
         handler: async function (response) {
-          // --- DATABASE ME SAVE KARNE KA LOGIC ---
           try {
             const saveRes = await fetch("/api/orders/create", {
               method: "POST",
@@ -82,15 +99,33 @@ export default function SingleProductPage() {
     }
   };
 
-  if (!product) return <div className="h-screen flex items-center justify-center bg-[#F9F9F9] text-sm font-bold tracking-widest text-gray-400">LOADING...</div>;
+  // Error State Handler
+  if (error) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-[#FDFBF7] gap-2">
+        <p className="text-gray-400 text-xs font-bold tracking-widest uppercase">Product Not Found 🥭</p>
+        <button onClick={() => router.push('/')} className="text-xs font-bold text-[#FF5E00] uppercase underline">Go Back Home</button>
+      </div>
+    );
+  }
+
+  // Loading State
+  if (!product) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-[#FDFBF7] gap-3">
+        <div className="w-5 h-5 border-2 border-[#FF5E00] border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-xs font-bold tracking-widest text-gray-400 uppercase">Loading Harvest Details...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white text-[#1a1a1a] antialiased">
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
 
       {/* Nav Section */}
       <nav className="border-b border-gray-100 px-6 py-4 flex justify-between items-center sticky top-0 bg-white/80 backdrop-blur-md z-50">
-        <button onClick={() => router.back()} className="text-[10px] font-bold uppercase tracking-widest hover:text-[#FF5E00] transition-colors">
+        <button onClick={() => router.back()} className="text-[10px] font-bold uppercase tracking-widest hover:text-[#FF5E00] transition-colors cursor-pointer">
           ← Back
         </button>
         <span className="font-black text-sm tracking-tighter uppercase">Kairi<span className="text-[#FF5E00]">.</span></span>
@@ -102,7 +137,9 @@ export default function SingleProductPage() {
         <div className="flex flex-col md:flex-row gap-12 items-start">
           <div className="w-full md:w-[45%]">
             <div className="relative aspect-square rounded-3xl overflow-hidden bg-gray-50 border border-gray-100 shadow-sm">
-              <Image src={product.imageUrl} alt={product.title} fill className="object-cover" priority />
+              {product.imageUrl && (
+                <Image src={product.imageUrl} alt={product.title || "Mango"} fill className="object-cover" priority />
+              )}
             </div>
           </div>
 
@@ -116,8 +153,13 @@ export default function SingleProductPage() {
             </div>
 
             <div className="flex items-baseline gap-3 pt-2">
-              <span className="text-3xl font-bold text-[#2D6A4F]">₹{product.discountPrice}</span>
-              <span className="text-lg text-gray-300 line-through font-medium">₹{product.price}</span>
+              {/* Fallback check pricing UI mapping */}
+              <span className="text-3xl font-bold text-[#2D6A4F]">
+                ₹{product.discountPrice > 0 ? product.discountPrice : product.price}
+              </span>
+              {product.discountPrice > 0 && (
+                <span className="text-lg text-gray-300 line-through font-medium">₹{product.price}</span>
+              )}
             </div>
 
             <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-50">
@@ -138,10 +180,10 @@ export default function SingleProductPage() {
             <div className="pt-6">
               <button 
                 onClick={handleBuyNow}
-                disabled={isProcessing}
-                className="w-full md:w-auto px-12 py-4 bg-[#FF5E00] text-white rounded-xl font-bold uppercase text-[11px] tracking-widest hover:bg-black transition-all active:scale-[0.98] shadow-lg shadow-orange-500/10 disabled:opacity-50"
+                disabled={isProcessing || product.isSoldOut}
+                className="w-full md:w-auto px-12 py-4 bg-[#FF5E00] text-white rounded-xl font-bold uppercase text-[11px] tracking-widest hover:bg-black transition-all active:scale-[0.98] shadow-lg shadow-orange-500/10 disabled:opacity-50 cursor-pointer"
               >
-                {isProcessing ? "Processing..." : "Buy Now"}
+                {isProcessing ? "Processing..." : product.isSoldOut ? "Out of Stock" : "Buy Now"}
               </button>
               <p className="mt-4 text-[9px] text-gray-400 font-medium tracking-wide">* Secure checkout powered by Razorpay</p>
             </div>
