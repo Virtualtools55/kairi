@@ -7,7 +7,7 @@ export default async function ProductsPage() {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
     
     // API Route call (Aapke project folder matching ke anusaar link update rakhein)
-    const res = await fetch(`${baseUrl}/api/fetchproducts`, { 
+    const res = await fetch(`${baseUrl}/api/fetchProducts`, { 
       cache: "no-store" 
     });
 
