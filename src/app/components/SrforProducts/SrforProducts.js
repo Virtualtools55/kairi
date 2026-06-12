@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ProductsPage() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
     
     // API Route call (Aapke project folder matching ke anusaar link update rakhein)
     const res = await fetch(`${baseUrl}/api/fetchproducts`, { 
